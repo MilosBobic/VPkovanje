@@ -1,0 +1,18 @@
+///OBAVEZNI DEO
+
+Zahtevi:
+ Tehnologija po izboru -- PHP i mysql
+ Objektno-orjentisano rešenje sa nasleđivanjem -- ?
+ Rad sa relacionom bazom podataka min 2 tabele + korisnik -- tabele (korisnik, kategorije, dobavljaci, porudzbine, stavke_porudzbine, transakcije,)
+
+Products je povezano sa Categories preko category_id.
+Order_Items je povezano sa Orders preko order_id i sa Products preko product_id.
+Orders je povezano sa Suppliers preko supplier_id.
+Inventory_Transactions je povezano sa Products preko product_id.
+
+
+ Obavezni deo – login, unos, brisanje, izmena, tabelarni prikaz sa filterom, stampa
+
+
+ Opcioni deo – parametarska štampa, primena ili izrada SOAP/REST veb servisa, odvojena tehnologija i
+semantika u sloju za rad sa podacima
