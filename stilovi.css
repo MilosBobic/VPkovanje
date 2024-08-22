@@ -1,0 +1,127 @@
+:root{
+    --meni-pozadina:#333;
+    --linkovi-tekst:#e2e2e2;
+    --linkovi-tekst-hover:#575757;
+    --aktivno-dugme: #aa7b04;
+    --pozadina:#e2e2e2;
+}
+
+body {
+    background-color: var(--pozadina);
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+nav {
+    height: 100%;
+    width: 20%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--meni-pozadina);
+    padding-top: 20px;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    width: 20%;
+    position: fixed; /* Da meni ostane sa leve strane dok se pomera stranica */
+    height: 100%; /* Visina menija pokriva celu visinu stranice */
+    overflow: auto; /* Omogućava skrolovanje ako sadržaj pređe visinu ekrana */
+}
+
+nav ul li {
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+nav ul li a {
+    display: block;
+    color: var(--linkovi-tekst);
+    padding: 10px;
+    text-decoration: none;
+}
+
+nav ul li a:hover {
+    background-color: var(--linkovi-tekst-hover);
+}
+
+nav ul li a.active {
+    background-color: var(--aktivno-dugme);
+}
+
+/* Stil za "Prijava" i "Registracija" da budu jedan pored drugog */
+.prijava-link {
+    display: flex;
+    justify-content: space-between;
+}
+
+.prijava-link a {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    margin: 0 5px;
+    background-color: var(--meni-pozadina);
+}
+
+.prijava-link a:hover {
+    background-color: var(--linkovi-tekst-hover);
+}
+
+main {
+    margin-left: 20%; /* Margina je jednaka širini menija */
+    padding: 20px;
+}
+
+.sadrzaj {
+    margin-left: 20%; /* Margina levo jednaka širini menija */
+    padding: 15px;
+}
+
+/* Stilizacija formi */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="password"] {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    background-color: var(--aktivno-dugme);
+    color: var(--linkovi-tekst);
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: var(--aktivno-dugme);
+}
+
+/* Stilizacija poruka o grešci i uspehu */
+.greska {
+    color: red;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.uspeh {
+    color: green;
+    font-size: 16px;
+    margin-bottom: 15px;
+}   

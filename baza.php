@@ -1,6 +1,6 @@
 <?php
 // Uključivanje konfiguracije
-require_once 'config.php';
+require_once 'konfiguracija.php';
 
 // Funkcija za uspostavljanje konekcije sa bazom podataka
 function poveziBazu() {
@@ -17,4 +17,27 @@ function poveziBazu() {
 // Funkcija za zatvaranje konekcije sa bazom podataka
 function zatvoriKonekciju($konekcija) {
     $konekcija->close();
+}
+
+function fetchData($sql, $parametri = []) {
+    $conn = poveziBazu();
+    $stmt = $conn->prepare($sql);
+    $tipovi = str_repeat('s', count($parametri));
+    $stmt->bind_param($tipovi, ...$parametri);
+    $stmt->execute();
+    $rezultat = $stmt->get_result();
+    $podaci = $rezultat->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    $conn->close();
+    return $podaci;
+}
+
+function executeQuery($sql, $parametri = []) {
+    $conn = poveziBazu();
+    $stmt = $conn->prepare($sql);
+    $tipovi = str_repeat('s', count($parametri));
+    $stmt->bind_param($tipovi, ...$parametri);
+    $stmt->execute();
+    $stmt->close();
+    $conn->close();
 }

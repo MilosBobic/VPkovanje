@@ -1,113 +1,47 @@
 <?php
-// Uključivanje datoteke za konekciju sa bazom
-require_once 'baza.php';
+session_start();
 
-// Funkcija za sanitizaciju korisničkog unosa
-function sanitizujUnos($podaci) {
-    return htmlspecialchars(stripslashes(trim($podaci)));
-}
+// Funkcija za prijavu korisnika
+function prijaviKorisnika($korisnickoIme, $lozinka) {
+    $sql = "SELECT * FROM Korisnici WHERE korisnicko_ime = ? AND lozinka = ?";
+    $rezultat = fetchData($sql, [$korisnickoIme, md5($lozinka)]); // Pretpostavka da je lozinka enkriptovana md5
 
-// Funkcija za proveru da li je korisnik prijavljen
-function daLiJePrijavljen() {
-    return isset($_SESSION['korisnik_id']);
-}
-
-// Funkcija za dobijanje korisnika po ID
-function KorisnikPoId($korisnikId) {
-    $konekcija = poveziBazu();
-    $stmt = $konekcija->prepare("SELECT * FROM Korisnici WHERE korisnik_id = ?");
-    $stmt->bind_param("i", $korisnikId);
-    $stmt->execute();
-    $rezultat = $stmt->get_result();
-    $korisnik = $rezultat->fetch_assoc();
-    zatvoriKonekciju($konekcija);
-    return $korisnik;
-}
-
-// Funkcija za proveru kredencijala korisnika
-function proveriPrijavu($korisnickoIme, $lozinka) {
-    $konekcija = poveziBazu();
-    $stmt = $konekcija->prepare("SELECT * FROM Korisnici WHERE korisnicko_ime = ? AND lozinka = ?");
-    $stmt->bind_param("ss", $korisnickoIme, $lozinka);
-    $stmt->execute();
-    $rezultat = $stmt->get_result();
-    $korisnik = $rezultat->fetch_assoc();
-    zatvoriKonekciju($konekcija);
-    return $korisnik;
-}
-
-// Funkcija za dobijanje svih proizvoda
-function prikaziSveProizvode() {
-    $konekcija = poveziBazu();
-    $sql = "SELECT * FROM Proizvodi";
-    $rezultat = $konekcija->query($sql);
-    $proizvodi = [];
-    if ($rezultat->num_rows > 0) {
-        while ($red = $rezultat->fetch_assoc()) {
-            $proizvodi[] = $red;
-        }
+    if (count($rezultat) > 0) {
+        $_SESSION['korisnik_id'] = $rezultat[0]['korisnik_id'];
+        $_SESSION['ime'] = $rezultat[0]['ime'];
+        $_SESSION['prezime'] = $rezultat[0]['prezime'];
+        $_SESSION['uloga'] = $rezultat[0]['uloga'];
+        $_SESSION['ulogovan'] = true; // Dodajte ovu liniju da označite da je korisnik prijavljen
+        return true;
     }
-    zatvoriKonekciju($konekcija);
-    return $proizvodi;
+    return false;
 }
 
-// Funkcija za kreiranje porudžbine
-function kreirajPorudzbinu($korisnikId, $stavke) {
-    $konekcija = poveziBazu();
-    $stmt = $konekcija->prepare("INSERT INTO Porudzbine (korisnik_id, datum_porudzbine) VALUES (?, NOW())");
-    $stmt->bind_param("i", $korisnikId);
-    $stmt->execute();
-    $porudzbinaId = $stmt->insert_id;
+// Funkcija za registraciju korisnika
+function registrujKorisnika($korisnickoIme, $lozinka, $ime, $prezime) {
+    // Proveri da li korisnik već postoji
+    $proveriKorisnika = fetchData("SELECT * FROM Korisnici WHERE korisnicko_ime = ?", [$korisnickoIme]);
 
-    foreach ($stavke as $stavka) {
-        $stmt = $konekcija->prepare("INSERT INTO Stavke_Porudzbine (porudzbina_id, proizvod_id, kolicina) VALUES (?, ?, ?)");
-        $stmt->bind_param("iii", $porudzbinaId, $stavka['proizvod_id'], $stavka['kolicina']);
-        $stmt->execute();
+    if (count($proveriKorisnika) > 0) {
+        return false; // Korisnik već postoji
     }
 
-    zatvoriKonekciju($konekcija);
-    return $porudzbinaId;
-}
-
-// Funkcija za brisanje porudžbine (samo za admina)
-function obrisiPorudzbinu($porudzbinaId) {
-    if (!daLiJePrijavljen() || $_SESSION['uloga'] !== 'admin') {
-        return false;
-    }
-
-    $konekcija = poveziBazu();
-    $stmt = $konekcija->prepare("DELETE FROM Porudzbine WHERE porudzbina_id = ?");
-    $stmt->bind_param("i", $porudzbinaId);
-    $stmt->execute();
-
-    $stmt = $konekcija->prepare("DELETE FROM Stavke_Porudzbine WHERE porudzbina_id = ?");
-    $stmt->bind_param("i", $porudzbinaId);
-    $stmt->execute();
-
-    zatvoriKonekciju($konekcija);
+    $sql = "INSERT INTO Korisnici (korisnicko_ime, lozinka, ime, prezime, uloga) VALUES (?, ?, ?, ?, 'user')";
+    executeQuery($sql, [$korisnickoIme, md5($lozinka), $ime, $prezime]);
     return true;
 }
 
-// Funkcija za dodavanje transakcije u inventar
-function dodajTransakcijuInventara($proizvodId, $tipTransakcije, $kolicina) {
-    $konekcija = poveziBazu();
-    $stmt = $konekcija->prepare("INSERT INTO Transakcije_Inventara (proizvod_id, tip_transakcije, kolicina) VALUES (?, ?, ?)");
-    $stmt->bind_param("isi", $proizvodId, $tipTransakcije, $kolicina);
-    $stmt->execute();
-    zatvoriKonekciju($konekcija);
+
+// Funkcija za proveru da li je korisnik prijavljen
+function daLiJeKorisnikUlogovan() {
+    return isset($_SESSION['korisnik_id']) && isset($_SESSION['ulogovan']) && $_SESSION['ulogovan'] === true;
 }
 
-// Funkcija za dobijanje svih transakcija u inventaru
-function prikaziTransakcijeInventara() {
-    $konekcija = poveziBazu();
-    $sql = "SELECT * FROM Transakcije_Inventara";
-    $rezultat = $konekcija->query($sql);
-    $transakcije = [];
-    if ($rezultat->num_rows > 0) {
-        while ($red = $rezultat->fetch_assoc()) {
-            $transakcije[] = $red;
-        }
+// Funkcija za dobijanje imena i prezimena korisnika
+function dohvatiImeIPrezimeKorisnika() {
+    if (daLiJeKorisnikUlogovan()) {
+        return $_SESSION['ime'] . ' ' . $_SESSION['prezime'];
     }
-    zatvoriKonekciju($konekcija);
-    return $transakcije;
+    return null;
 }
+?>
