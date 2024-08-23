@@ -1,12 +1,12 @@
 <?php
-session_start();
+
 require_once 'funkcije.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $korisnickoIme = $_POST['korisnicko_ime'];
-    $lozinka = $_POST['lozinka'];
-    $ime = $_POST['ime'];
-    $prezime = $_POST['prezime'];
+    $korisnickoIme = $_POST['korisnicko_ime'] ?? '';
+    $lozinka = $_POST['lozinka'] ?? '';
+    $ime = $_POST['ime'] ?? '';
+    $prezime = $_POST['prezime'] ?? '';
 
     if (registrujKorisnika($korisnickoIme, $lozinka, $ime, $prezime)) {
         // Preusmeri korisnika na stranicu za prijavu
@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if (isset($greska)): ?>
             <div class="greska"><?php echo htmlspecialchars($greska); ?></div>
         <?php endif; ?>
-        <form method="post">
+        <form action="registracija.php" method="post">
             <label for="korisnicko_ime">Korisničko ime:</label>
             <input type="text" id="korisnicko_ime" name="korisnicko_ime" required>
             

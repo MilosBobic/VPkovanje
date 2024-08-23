@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once 'funkcije.php'; // Uključi funkcije.php da bi mogao da koristiš funkcije
 
 // Proveri da li je korisnik prijavljen
