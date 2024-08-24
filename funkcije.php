@@ -55,7 +55,6 @@ function registrujKorisnika($korisnickoIme, $lozinka, $ime, $prezime) {
     return true;
 }
 
-
 // Funkcija za proveru da li je korisnik prijavljen
 function daLiJeKorisnikUlogovan() {
     return isset($_SESSION['korisnik_id']) && isset($_SESSION['ulogovan']) && $_SESSION['ulogovan'] === true;
@@ -68,6 +67,34 @@ function dohvatiImeIPrezimeKorisnika() {
     }
     return null;
 }
+
+function daLiJeKorisnikAdmin() {
+    // Proverite da li je korisnik ulogovan
+    if (!daLiJeKorisnikUlogovan()) {
+        return false;
+    }
+
+    // Uzmi ID trenutno ulogovanog korisnika iz sesije
+    $korisnik_id = $_SESSION['korisnik_id'];
+
+    // Poveži se sa bazom
+    $konekcija = poveziBazu();
+
+    // Pretraži bazu da bi se proverilo da li je korisnik admin
+    $upit = "SELECT uloga FROM Korisnici WHERE korisnik_id = ?";
+    $stmt = $konekcija->prepare($upit);
+    $stmt->bind_param('i', $korisnik_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $korisnik = $result->fetch_assoc();
+
+    // Zatvori konekciju
+    zatvoriKonekciju($konekcija);
+
+    // Proveri ulogu korisnika
+    return $korisnik['uloga'] === 'admin';
+}
+
 
 function dohvatiProizvode() {
     $konekcija = poveziBazu();
@@ -84,145 +111,69 @@ function dohvatiProizvode() {
     return $proizvodi;
 }
 
-// Dohvati sve porudžbine
-function dohvatiPorudzbine() {
-    $konekcija = poveziBazu();
-    $sql = "SELECT * FROM Porudzbine";
-    $stmt = $konekcija->prepare($sql);
-    $stmt->execute();
-    $rezultat = $stmt->get_result();
-    $Porudzbine = $rezultat->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
-    $konekcija->close();
-    return $Porudzbine;
-}
-
-// Dohvati detalje porudžbine po ID-u
-function dohvatiDetaljePorudzbinePoId($porudzbina_id) {
-    $konekcija = poveziBazu();
-    $sql = "SELECT * FROM order_details WHERE porudzbina_id = ?";
-    $stmt = $konekcija->prepare($sql);
-    $stmt->bind_param("i", $porudzbina_id);
-    $stmt->execute();
-    $rezultat = $stmt->get_result();
-    $porudzbina = $rezultat->fetch_assoc();
-    $stmt->close();
-    $konekcija->close();
-    return $porudzbina;
-}
-
-// Dodaj novu porudžbinu
-function dodajPorudzbinu($proizvod_id, $kolicina, $dobavljac_id, $korisnik_id) {
-    // Poveži se sa bazom
-    $konekcija = poveziBazu();
-
-    // Dodavanje nove porudžbine u tabelu `Porudzbine`
-    $sql = "INSERT INTO Porudzbine (proizvod_id, kolicina, dobavljac_id, korisnik_id) VALUES (?, ?, ?, ?)";
-    $stmt = $konekcija->prepare($sql);
-    $stmt->bind_param("iiii", $proizvod_id, $kolicina, $dobavljac_id, $korisnik_id);
-    $stmt->execute();
-
-    // Uzmi poslednji umetnuti ID za porudžbinu
-    $porudzbina_id = $stmt->insert_id;
-    $stmt->close();
-
-    // Zatvori konekciju sa bazom
-    $konekcija->close();
-
-    return $porudzbina_id; // Vrati ID umetnute porudžbine
-}
-
-
-// Dodaj stavke u porudžbinu
-function dodajDetaljePorudzbine($porudzbina_id, $proizvod_id, $kolicina) {
-    $konekcija = poveziBazu();
-    $sql = "INSERT INTO Porudzbine (porudzbina_id, proizvod_id, kolicina, stanje) VALUES (?, ?, ?, 'Poručeno')";
-    $stmt = $konekcija->prepare($sql);
-    $stmt->bind_param("iii", $porudzbina_id, $proizvod_id, $kolicina);
-    $stmt->execute();
-    $stmt->close();
-    $konekcija->close();
-}
-
-// Ažuriraj status porudžbine
-function azurirajStatusPorudzbine($porudzbina_id, $status) {
-    $konekcija = poveziBazu();
-    $sql = "UPDATE Porudzbine SET stanje = ? WHERE porudzbina_id = ?";
-    $stmt = $konekcija->prepare($sql);
-    $stmt->bind_param("si", $status, $porudzbina_id);
-    $stmt->execute();
-
-    if ($status === 'Stiglo') {
-        // Dodaj u inventar
-        $detaljiPorudzbine = dohvatiDetaljePorudzbinePoId($porudzbina_id);
-        foreach ($detaljiPorudzbine as $stavka) {
-            dodajUInventar($stavka['proizvod_id'], $stavka['kolicina']);
-        }
+function dodajPorudzbinu($konekcija, $korisnik_id, $proizvod_id, $kolicina) {
+    $upit_porudzbina = "INSERT INTO Porudzbine (korisnik_id, proizvod_id, kolicina) VALUES (?, ?, ?)";
+    $stmt = $konekcija->prepare($upit_porudzbina);
+    $stmt->bind_param('iii', $korisnik_id, $proizvod_id, $kolicina);
+    if ($stmt->execute()) {
+        return $konekcija->insert_id; // Vraća ID nove porudžbine
+    } else {
+        echo "Greška pri kreiranju porudžbine: " . $konekcija->error;
+        return false;
     }
-
-    $stmt->close();
-    $konekcija->close();
+}
+function dodajProizvod($konekcija, $naziv_proizvoda, $opis, $cena, $kolicina_na_stanju) {
+    $upit = "INSERT INTO Proizvodi (naziv_proizvoda, opis, cena, kolicina_na_stanju) VALUES (?, ?, ?, ?)";
+    $stmt = $konekcija->prepare($upit);
+    $stmt->bind_param('ssdi', $naziv_proizvoda, $opis, $cena, $kolicina_na_stanju);
+    return $stmt->execute();
 }
 
-// Dodaj u inventar
-function dodajUInventar($proizvod_id, $kolicina) {
-    $konekcija = poveziBazu();
-    $sql = "UPDATE proizvodi SET kolicina_na_stanju = kolicina_na_stanju + ? WHERE proizvod_id = ?";
-    $stmt = $konekcija->prepare($sql);
-    $stmt->bind_param("ii", $kolicina, $proizvod_id);
-    $stmt->execute();
-    $stmt->close();
-    $konekcija->close();
+function obrisiProizvod($konekcija, $proizvod_id) {
+    $upit = "DELETE FROM Proizvodi WHERE proizvod_id = ?";
+    $stmt = $konekcija->prepare($upit);
+    $stmt->bind_param('i', $proizvod_id);
+    if ($stmt->execute()) {
+        return true;
+    } else {
+        echo "Greška pri brisanju proizvoda: " . $konekcija->error;
+        return false;
+    }
 }
 
-// Obriši porudžbinu
-function obrisiPorudzbinu($porudzbina_id) {
-    $konekcija = poveziBazu();
-    $sql = "DELETE FROM order_details WHERE porudzbina_id = ?";
-    $stmt = $konekcija->prepare($sql);
-    $stmt->bind_param("i", $porudzbina_id);
-    $stmt->execute();
-    $stmt->close();
+function azurirajKolicinuProizvoda($konekcija, $proizvod_id, $kolicina) {
+    // Upit za ažuriranje količine na stanju
+    $upit = "UPDATE Proizvodi SET kolicina_na_stanju = kolicina_na_stanju + ? WHERE proizvod_id = ?";
+    $stmt = $konekcija->prepare($upit);
     
-    // Takođe obriši iz tabele `Porudzbine`
-    $sql = "DELETE FROM Porudzbine WHERE porudzbina_id = ?";
-    $stmt = $konekcija->prepare($sql);
-    $stmt->bind_param("i", $porudzbina_id);
-    $stmt->execute();
-    $stmt->close();
+    // Proveri da li je priprema upita uspešna
+    if ($stmt === false) {
+        echo "Greška pri pripremi upita: " . $konekcija->error;
+        return false;
+    }
     
-    $konekcija->close();
+    // Bind parametri i izvrši upit
+    $stmt->bind_param('ii', $kolicina, $proizvod_id);
+    
+    // Izvrši upit i proveri rezultat
+    if ($stmt->execute()) {
+        $stmt->close();
+        return true;
+    } else {
+        echo "Greška pri ažuriranju količine proizvoda: " . $konekcija->error;
+        $stmt->close();
+        return false;
+    }
 }
 
-// Funkcija za dohvatanje dobavljača iz baze
-function dohvatiDobavljace() {
-    $konekcija = poveziBazu();
-    $sql = "SELECT * FROM Dobavljaci";
-    $stmt = $konekcija->prepare($sql);
-    $stmt->execute();
-    $rezultat = $stmt->get_result();
-    $dobavljaci = $rezultat->fetch_all(MYSQLI_ASSOC);
-    $stmt->close();
-    $konekcija->close();
-    return $dobavljaci;
-}
-
-function dohvatiNaziveProizvodaIzPorudzbina() {
-    $konekcija = poveziBazu();
-    
-    // SQL upit koji vraća samo naziv proizvoda
-    $sql = "
-        SELECT pr.naziv_proizvoda 
-        FROM Porudzbine p
-        JOIN Proizvodi pr ON p.proizvod_id = pr.proizvod_id";
-    
-    $stmt = $konekcija->prepare($sql);
-    $stmt->execute();
-    $rezultat = $stmt->get_result();
-    $naziviProizvoda = $rezultat->fetch_all(MYSQLI_ASSOC);
-    
-    $stmt->close();
-    $konekcija->close();
-    
-    return $naziviProizvoda;
+function dodajStavkuPorudzbine($konekcija, $porudzbina_id, $proizvod_id, $kolicina) {
+    $upit_stavka_porudzbine = "INSERT INTO Stavke_Porudzbine (porudzbina_id, proizvod_id, kolicina) VALUES (?, ?, ?)";
+    $stmt = $konekcija->prepare($upit_stavka_porudzbine);
+    $stmt->bind_param('iii', $porudzbina_id, $proizvod_id, $kolicina);
+    if ($stmt->execute()) {
+        return true;
+    } else {
+        echo "Greška pri dodavanju stavke porudžbine: " . $konekcija->error;
+        return false;
+    }
 }
