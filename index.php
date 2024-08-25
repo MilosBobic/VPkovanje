@@ -28,11 +28,17 @@ $brojPorudzbina = $porudzbina->brojPorudzbina();
         include 'Meni-neulogovan.php'; // Uključi meni za neulogovane korisnike
     }
     ?>
-    
+        <?php if ($ulogovan) : ?>
     <div class="sadrzaj">
         <h1>Dobrodošli na početnu stranicu!</h1>
         <p>Broj proizvoda: <?php echo htmlspecialchars($brojProizvoda); ?></p>
         <p>Broj porudžbina: <?php echo htmlspecialchars($brojPorudzbina); ?></p>
     </div>
+    <?php else : ?>
+    <div class="sadrzaj">
+        <h1>Dobrodošli na početnu stranicu!</h1>
+        <p>Morate se ulogovati da bi videli sadržaj</p>
+    </div>
+    <?php endif; ?>
 </body>
 </html>

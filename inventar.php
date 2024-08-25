@@ -63,6 +63,7 @@ if ($minCena !== null && $maxCena !== null) {
     }
     ?>
 
+    <?php if ($ulogovan): ?>
     <div class="sadrzaj">
         <h1>Inventar</h1>
         <form method="get" action="inventar.php">
@@ -144,5 +145,11 @@ if ($minCena !== null && $maxCena !== null) {
             <p>Odaberite proizvod za izmenu.</p>
         <?php endif; ?>
     </div>
+    <?php else : ?>
+    <div class="sadrzaj">
+        <h1>Dobrodošli na inventar stranicu!</h1>
+        <p>Morate se ulogovati da bi videli sadržaj</p>
+    </div>
+    <?php endif; ?>
 </body>
 </html>

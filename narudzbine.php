@@ -37,7 +37,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['posalji'])) {
         include 'Meni-neulogovan.php'; // Uključi meni za neulogovane korisnike
     }
     ?>
-    
     <div class="sadrzaj">
         <?php if ($ulogovan): ?>
             <h1>Porudžbine</h1>
@@ -58,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['posalji'])) {
             </form>
         <?php else: ?>
             <h1>Dobrodošli!</h1>
-            <p>Morate se ulogovati da biste videli sadržaj aplikacije.</p>
+            <p>Morate se ulogovati da biste videli sadržaj narudžbine.</p>
         <?php endif; ?>
     </div>
 </body>
