@@ -1,15 +1,15 @@
 <?php
-require_once 'funkcije.php';
+require_once 'klasaKorisnik.php';
 
 $greska = '';
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $korisnickoIme = $_POST['korisnicko_ime'];
-    $lozinka = $_POST['lozinka'];
+    $korisnicko_ime = $_POST['korisnicko_ime'] ?? '';
+    $lozinka = $_POST['lozinka'] ?? '';
 
-    if (prijaviKorisnika($korisnickoIme, $lozinka)) {
-        // Preusmeri korisnika na početnu stranicu
+    $korisnik = new Korisnik();
+
+    if ($korisnik->prijaviKorisnika($korisnicko_ime, $lozinka)) {
         header('Location: index.php');
         exit;
     } else {
@@ -27,8 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="stilovi.css">
 </head>
 <body>
-
-<div style="width:50%; margin: 0 auto">
+    <div style="width:50%; margin: 0 auto">
         <h1>Prijava</h1>
         <?php if ($greska): ?>
             <p class="greska"><?php echo htmlspecialchars($greska); ?></p>
@@ -42,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <br>
             <button type="submit">Prijavi se</button>
         </form>
+        <p>Nemate nalog? <a href="registracija.php">Registrujte se</a></p>
     </div>
 </body>
 </html>

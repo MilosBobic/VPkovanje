@@ -1,8 +1,15 @@
 <?php
-require_once 'funkcije.php'; // Uključi funkcije.php da bi mogao da koristiš funkcije
+session_start();
+$ulogovan = isset($_SESSION['korisnik_id']);
 
-// Proveri da li je korisnik prijavljen
-$ulogovan = daLiJeKorisnikUlogovan();
+require_once 'klasaProizvod.php';
+require_once 'klasaPorudzbina.php';
+
+$proizvod = new Proizvod();
+$porudzbina = new Porudzbina();
+
+$brojProizvoda = $proizvod->brojProizvoda();
+$brojPorudzbina = $porudzbina->brojPorudzbina();
 ?>
 
 <!DOCTYPE html>
@@ -16,21 +23,16 @@ $ulogovan = daLiJeKorisnikUlogovan();
 <body>
     <?php
     if ($ulogovan) {
-        include 'meni.php'; // Uključi meni samo ako je korisnik prijavljen
-    }
-    else {
-        include 'meni-neulogovan.php'; // Uključi meni-neulogovan.php ako nije prijavljen
+        include 'Meni.php'; // Uključi meni ako je korisnik prijavljen
+    } else {
+        include 'Meni-neulogovan.php'; // Uključi meni za neulogovane korisnike
     }
     ?>
-
+    
     <div class="sadrzaj">
-        <?php if ($ulogovan): ?>
-            <h1>Dobrodošli, <?php echo htmlspecialchars(dohvatiImeIPrezimeKorisnika()); ?>!</h1>
-            <p>Možete sada koristiti aplikaciju.</p>
-        <?php else: ?>
-            <h1>Dobrodošli!</h1>
-            <p>Morate se ulogovati da biste videli sadržaj aplikacije.</p>
-        <?php endif; ?>
+        <h1>Dobrodošli na početnu stranicu!</h1>
+        <p>Broj proizvoda: <?php echo htmlspecialchars($brojProizvoda); ?></p>
+        <p>Broj porudžbina: <?php echo htmlspecialchars($brojPorudzbina); ?></p>
     </div>
 </body>
 </html>

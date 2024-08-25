@@ -87,6 +87,7 @@ form {
 }
 
 label {
+    width: 20%;
     margin-bottom: 5px;
     font-weight: bold;
 }
@@ -95,7 +96,7 @@ input[type="text"],
 input[type="password"] {
     padding: 10px;
     margin-bottom: 15px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--linkovi-tekst);
     border-radius: 4px;
 }
 
@@ -103,7 +104,7 @@ button {
     padding: 10px 20px;
     border: none;
     border-radius: 4px;
-    background-color: var(--aktivno-dugme);
+    background-color: var(--linkovi-tekst-hover);
     color: var(--linkovi-tekst);
     font-size: 16px;
     cursor: pointer;
@@ -112,16 +113,3 @@ button {
 button:hover {
     background-color: var(--aktivno-dugme);
 }
-
-/* Stilizacija poruka o grešci i uspehu */
-.greska {
-    color: red;
-    font-size: 16px;
-    margin-bottom: 15px;
-}
-
-.uspeh {
-    color: green;
-    font-size: 16px;
-    margin-bottom: 15px;
-}   

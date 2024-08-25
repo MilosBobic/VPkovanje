@@ -2,16 +2,12 @@
 
 Zahtevi:
  Tehnologija po izboru -- PHP i mysql
- Objektno-orjentisano rešenje sa nasleđivanjem -- ?
- Rad sa relacionom bazom podataka min 2 tabele + korisnik -- tabele (korisnik, kategorije, dobavljaci, porudzbine, stavke_porudzbine, transakcije,)
-
-Products je povezano sa Categories preko category_id.
-Order_Items je povezano sa Orders preko order_id i sa Products preko product_id.
-Orders je povezano sa Suppliers preko supplier_id.
-Inventory_Transactions je povezano sa Products preko product_id.
+ Objektno-orjentisano rešenje sa nasleđivanjem -- GOTOVO
+ Rad sa relacionom bazom podataka min 2 tabele + korisnik GOTOVO
 
 
- Obavezni deo – login, unos, brisanje, izmena, tabelarni prikaz sa filterom, stampa
+
+ Obavezni deo – login GOTOVO, unos GOTOVO, brisanje GOTOVO, izmena GOTOVO, tabelarni prikaz sa filterom GOTOVO, stampa
 
 
  Opcioni deo – parametarska štampa, primena ili izrada SOAP/REST veb servisa, odvojena tehnologija i

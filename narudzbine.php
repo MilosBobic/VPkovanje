@@ -1,38 +1,23 @@
 <?php
-require_once 'funkcije.php';
+require_once 'klasaProizvod.php';
+require_once 'klasaPorudzbina.php';
 
-$ulogovan = daLiJeKorisnikUlogovan();
-$proizvodi = dohvatiProizvode(); // Dohvati proizvode iz baze kao niz
 
-// Obrada porudžbine proizvoda
+session_start();
+$ulogovan = isset($_SESSION['korisnik_id']);
+$proizvodi = (new Proizvod())->dohvatiProizvode();
+
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['posalji'])) {
     $proizvod_id = $_POST['proizvod_id'];
     $kolicina = $_POST['kolicina'];
     $korisnik_id = $_SESSION['korisnik_id']; // ID trenutnog korisnika
 
-    // Koristimo funkciju koja kreira novu vezu sa bazom
-    $konekcija = poveziBazu();
-
-    // Dodavanje nove porudžbine
-    $porudzbina_id = dodajPorudzbinu($konekcija, $korisnik_id, $proizvod_id, $kolicina);
-    if ($porudzbina_id) {
-        // Dodavanje stavke porudžbine
-        if (dodajStavkuPorudzbine($konekcija, $porudzbina_id, $proizvod_id, $kolicina)) {
-            // Ažuriranje količine proizvoda
-            if (azurirajKolicinuProizvoda($konekcija, $proizvod_id, $kolicina)) {
-                echo "Uspešno ste poručili proizvod!";
-            } else {
-                echo "Došlo je do greške prilikom ažuriranja količine proizvoda.";
-            }
-        } else {
-            echo "Došlo je do greške prilikom dodavanja stavke porudžbine.";
-        }
+    $porudzbina = new Porudzbina();
+    if ($porudzbina->dodajPorudzbinu($korisnik_id, $proizvod_id, $kolicina)) {
+        echo "Uspešno ste poručili proizvod!";
     } else {
         echo "Došlo je do greške prilikom kreiranja porudžbine.";
     }
-
-    // Zatvori konekciju nakon upita
-    zatvoriKonekciju($konekcija);
 }
 ?>
 
@@ -47,9 +32,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['posalji'])) {
 <body>
     <?php
     if ($ulogovan) {
-        include 'meni.php'; // Uključi meni ako je korisnik prijavljen
+        include 'Meni.php'; // Uključi meni ako je korisnik prijavljen
     } else {
-        include 'meni-neulogovan.php'; // Uključi meni za neulogovane korisnike
+        include 'Meni-neulogovan.php'; // Uključi meni za neulogovane korisnike
     }
     ?>
     
